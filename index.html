@@ -8,13 +8,17 @@
   <style>html,body{margin:0;height:100%;overflow:hidden;background:#c8956a}canvas{display:block}
     #hud{position:fixed;left:16px;bottom:16px;padding:8px 12px;border-radius:8px;background:rgba(40,18,8,.45);color:#ffe2c4;font:13px/1.4 system-ui,sans-serif;pointer-events:none;letter-spacing:.02em}
     #hud b{color:#fff}
+    #sky-map{position:fixed;top:16px;left:16px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+    #skymap{width:220px;height:220px;border-radius:50%;box-shadow:0 0 0 2px rgba(200,220,255,.35),0 4px 18px rgba(0,0,0,.45)}
+    #sky-info{max-width:260px;padding:4px 10px;border-radius:8px;background:rgba(10,13,28,.55);color:#dfe8ff;font:12px/1.4 system-ui,sans-serif;text-align:center}
     #boost.on{color:#ffd27a;font-weight:600}
     #map{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
     #minimap{width:180px;height:180px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,226,196,.55),0 4px 18px rgba(40,18,8,.45)}
     #map-info{padding:4px 10px;border-radius:8px;background:rgba(40,18,8,.45);color:#ffe2c4;font:12px/1.4 system-ui,sans-serif;white-space:nowrap}
-    @media (max-width:600px){#minimap{width:120px;height:120px}#map-info{font-size:11px}}</style>
+    @media (max-width:600px){#minimap,#skymap{width:120px;height:120px}#map-info,#sky-info{font-size:11px;max-width:150px;white-space:normal}}</style>
 </head>
 <body>
+  <div id="sky-map"><canvas id="skymap"></canvas><div id="sky-info"></div></div>
   <div id="map"><canvas id="minimap"></canvas><div id="map-info"></div></div>
   <div id="hud"><b>WASD</b> drive · <b>Q</b> 2× speed: <span id="boost">off</span> · <b>mouse</b> orbit camera · <b>click</b> enable sound</div>
   <script type="module" src="/src/main.js"></script>

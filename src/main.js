@@ -18,6 +18,7 @@ import { createTracks, updateTracks } from './rover/tracks.js';
 import { createFollowCamera } from './rover/followCamera.js';
 import { createWheels } from './rover/wheels.js';
 import { createMinimap } from './ui/minimap.js';
+import { createSkymap } from './ui/skymap.js';
 
 const { renderer, scene, camera, controls, render } = createStage();
 
@@ -38,6 +39,7 @@ scene.add(lights.sun, lights.sun.target, lights.sky, skyDome, starfield, horizon
 
 const $ = (id) => document.getElementById(id);
 const minimap = createMinimap($('minimap'), $('map-info'), terrain);
+const skymap = createSkymap($('skymap'), $('sky-info'));
 const boostLabel = $('boost');
 
 // View while the rover loads
@@ -71,6 +73,7 @@ renderer.setAnimationLoop(() => {
   renderer.toneMappingExposure = 1.05 + 0.5 * (1 - look.daylight); // eyes adapting to the dark
   updateSky(skyDome, sky.sunDir, look);
   updateDust(dust, dt, t, look.daylight);
+  skymap.update(dt, sky, look);
 
   if (rover) {
     const drive = driver.update(dt);
