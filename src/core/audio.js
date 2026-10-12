@@ -158,14 +158,24 @@ function lfo(frequency, depth, param) {
 }
 
 // Browsers differ on which gestures may start audio (Safari ignores pointerdown), so every
-// gesture tries, and a context that was created suspended or got interrupted is resumed.
+// gesture tries, and a context that was created suspended or got interrupted is resumed —
+// unless the user switched the sound off.
+let wanted = true;
 function startAudio() {
+  if (!wanted) return;
   if (!ctx) createAudioGraph();
   if (ctx.state !== 'running') ctx.resume();
 }
 ['pointerdown', 'pointerup', 'click', 'touchend', 'keydown'].forEach((type) => addEventListener(type, startAudio));
 
-export const isAudioOn = () => ctx?.state === 'running';
+export const isAudioOn = () => wanted && ctx?.state === 'running';
+
+// Sound on/off switch: off suspends all audio processing; on resumes it (or starts it)
+export function toggleSound() {
+  wanted = !isAudioOn();
+  if (wanted) startAudio();
+  else ctx?.suspend();
+}
 
 // effort: motor effort from 0 (stopped) to 1 (full power); event: 'accelerate' | 'brake' | null
 export function updateAudio(effort, event) {

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { ROVER_START } from './config.js';
 import { createStage } from './core/stage.js';
-import { updateAudio, isAudioOn } from './core/audio.js';
+import { updateAudio, isAudioOn, toggleSound } from './core/audio.js';
+import { onPress } from './core/input.js';
 import { createMarsClock } from './astro/clock.js';
 import { altAz } from './astro/ephemeris.js';
 import { createLights, updateLights } from './world/lighting.js';
@@ -45,7 +46,16 @@ const minimap = createMinimap($('minimap'), $('map-info'), terrain);
 const skymap = createSkymap($('skymap'), $('sky-info'));
 const clockHud = createClockHud($('clock'));
 const boostLabel = $('boost');
-const soundLabel = $('sound');
+
+// Sound button (and M): its clicks must not reach the "any gesture starts audio" listeners
+const soundButton = $('sound');
+['pointerdown', 'pointerup', 'touchend'].forEach((type) => soundButton.addEventListener(type, (e) => e.stopPropagation()));
+soundButton.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleSound();
+  soundButton.blur(); // keep Space/Enter from re-triggering it
+});
+onPress('KeyM', toggleSound);
 let soundShown = false;
 
 // View while the rover loads
@@ -94,7 +104,8 @@ renderer.setAnimationLoop(() => {
   }
   if (isAudioOn() !== soundShown) {
     soundShown = isAudioOn();
-    soundLabel.innerHTML = soundShown ? '🔊 sound on' : '<b>click</b> to enable sound';
+    soundButton.textContent = soundShown ? '🔊 Sound: on' : '🔇 Sound: off';
+    soundButton.classList.toggle('off', !soundShown);
   }
   updateLights(lights, controls.target, sky.sunDir, sunAlt, look);
 
