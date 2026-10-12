@@ -12,8 +12,10 @@ const FORWARD_KEYS = ['KeyW', 'ArrowUp'], BACK_KEYS = ['KeyS', 'ArrowDown'];
 const LEFT_KEYS = ['KeyA', 'ArrowLeft'], RIGHT_KEYS = ['KeyD', 'ArrowRight'];
 
 // WASD/arrow-key driving. Returns { update(dt) } and keeps the rover on the ground.
+// update() also reports hydraulic events: 'accelerate' when the rover starts driving and
+// 'brake' when it stops or reverses direction while moving.
 export function createDriver(rover, { x, z, heading }) {
-  let speed = 0;
+  let speed = 0, lastThrottle = 0;
   rover.position.set(x, groundHeight(x, z), z);
   alignToGround(rover, heading, 1);
 
@@ -24,7 +26,8 @@ export function createDriver(rover, { x, z, heading }) {
     const targetSpeed = throttle * MAX_SPEED * (throttle < 0 ? REVERSE_FACTOR : 1);
     speed += (targetSpeed - speed) * damp(2, dt);
     // Perseverance can turn in place, so it turns even when stopped
-    heading += steer * TURN_SPEED * dt * (speed < -0.05 ? -1 : 1);
+    const yawRate = steer * TURN_SPEED * (speed < -0.05 ? -1 : 1);
+    heading += yawRate * dt;
 
     rover.position.x += Math.sin(heading) * speed * dt;
     rover.position.z += Math.cos(heading) * speed * dt;
@@ -32,10 +35,21 @@ export function createDriver(rover, { x, z, heading }) {
 
     // Motor effort from 0 to 1 (for the sound)
     const effort = Math.min(Math.abs(speed) / MAX_SPEED + (steer ? 0.3 : 0), 1);
-    return { speed, effort };
+    const event = hydraulicEvent(lastThrottle, throttle, speed);
+    lastThrottle = throttle;
+    return { speed, yawRate, effort, event };
   }
 
   return { update };
+}
+
+const MOVING = 0.3; // m/s: below this a release is just stopping, not braking
+
+function hydraulicEvent(previous, current, speed) {
+  if (current === previous) return null;
+  if (current !== 0 && (previous === 0 || Math.abs(speed) < MOVING)) return 'accelerate';
+  if (Math.abs(speed) > MOVING) return 'brake'; // released or reversed while moving
+  return null;
 }
 
 // Tilts the rover to the slope and rests it on the ground; k = smoothing (1 = instant)

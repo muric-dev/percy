@@ -5,6 +5,7 @@ import { damp, wrapAngle, yawOf } from '../utils/math.js';
 const LOOK_HEIGHT = 1.4; // the camera looks at the height of the rover's body
 const MIN_CLEARANCE = 1.2; // minimum height above the ground
 const REALIGN_RATE = 1.5;
+const START_OFFSET = new THREE.Vector3(3, 2.2, -8); // in rover space: slightly to the side and behind
 
 // Camera that follows the rover: it moves with it and, while driving, gradually swings behind it.
 // The user can orbit it with the mouse at any time (OrbitControls).
@@ -15,6 +16,7 @@ export function createFollowCamera(camera, controls, rover) {
 
   const lastPos = rover.position.clone();
   const offset = new THREE.Vector3();
+  camera.position.copy(START_OFFSET).applyQuaternion(rover.quaternion).add(rover.position);
 
   function update(dt, speed) {
     camera.position.add(offset.subVectors(rover.position, lastPos));

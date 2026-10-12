@@ -1,28 +1,36 @@
 import * as THREE from 'three';
 import { fbm, noise } from '../utils/noise.js';
 import { smoothstep } from '../utils/math.js';
+import { craterHeight } from './craters.js';
 
-const SIZE = 1000, SEG = 400, STEP = SIZE / SEG;
+const SIZE = 1000, SEG = 600, STEP = SIZE / SEG;
 
-// Terrain height at (x, z): rolling plain + dune fields + Jezero crater rim.
+// Transverse aeolian ridges (TARs), the typical bedforms of the Jezero floor.
+// Typical TAR (Hugenholtz et al. 2017, 2,295 TARs measured on HiRISE DTMs):
+// 1.3 m tall, 17.3 m wide, 88.5 m long, 25.8 m wavelength, symmetric profile.
+const TAR_HEIGHT = 1.3, TAR_WIDTH = 17.3, TAR_LENGTH = 88.5, TAR_WAVELENGTH = 25.8;
+const TAR_ANGLE = THREE.MathUtils.degToRad(25); // crest orientation, perpendicular to the wind
+
+// 0..1 shape of the ridges at (x, z), already masked into discontinuous ridges and fields
+function tarAmount(x, z) {
+  const ca = Math.cos(TAR_ANGLE), sa = Math.sin(TAR_ANGLE);
+  const u = (x * ca + z * sa) / TAR_WAVELENGTH + fbm(x * 0.01 + 10, z * 0.01) * 0.6;
+  const ridge = Math.floor(u);
+  const across = 1 - (Math.abs(u - ridge - 0.5) * 2 * TAR_WAVELENGTH) / TAR_WIDTH;
+  if (across <= 0) return 0;
+  const profile = smoothstep(0, 1, across); // symmetric, rounded crest
+
+  // Each ridge is a discontinuous segment ~TAR_LENGTH long, and ridges come in fields
+  const v = (-x * sa + z * ca) / TAR_LENGTH;
+  const segment = smoothstep(-0.15, 0.35, noise(v * 1.6 + ridge * 7.31, ridge * 3.17));
+  const field = smoothstep(-0.25, 0.25, noise(x * 0.005 + 3, z * 0.005 - 7));
+  const size = 0.6 + 0.8 * (noise(ridge * 1.9, v) * 0.5 + 0.5);
+  return profile * segment * field * size;
+}
+
+// Terrain height at (x, z): gently undulating crater floor + TARs + small craters.
 function heightAt(x, z) {
-  let h = fbm(x * 0.008, z * 0.008) * 7;
-
-  // Sharp-crested dunes, oriented by the wind and warped by noise
-  const warp = fbm(x * 0.015 + 10, z * 0.015) * 4;
-  const u = x * 0.035 + z * 0.015 + warp;
-  const crest = Math.pow(1 - Math.abs(Math.sin(u)), 2.2);
-  const duneMask = smoothstep(-0.4, 0.2, noise(x * 0.006 + 3, z * 0.006 - 7));
-  h += crest * 5.5 * duneMask;
-
-  // Fine ripples in the sand
-  h += Math.sin(x * 0.9 + z * 0.35 + warp * 3) * 0.05;
-
-  // Distant crater rim
-  const r = Math.hypot(x, z);
-  const ang = Math.atan2(z, x);
-  const rim = smoothstep(220, 420, r) * (35 + fbm(Math.cos(ang) * 3, Math.sin(ang) * 3) * 40);
-  return h + rim;
+  return fbm(x * 0.004, z * 0.004) * 3 + tarAmount(x, z) * TAR_HEIGHT + craterHeight(x, z);
 }
 
 // Height of the mesh as rendered (interpolated between vertices), so objects rest on it
@@ -63,7 +71,7 @@ export function createTerrain() {
   return mesh;
 }
 
-// Vertex colors: rust overall, light sand on crests, darker tones on slopes
+// Vertex colors: rust overall, light-toned sand on TARs (as seen from orbit), darker on slopes
 function paintGround(geo) {
   const pos = geo.attributes.position;
   const nrm = geo.attributes.normal;
@@ -73,11 +81,11 @@ function paintGround(geo) {
   const dark = new THREE.Color(0x6a3420);
   const c = new THREE.Color();
   for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const x = pos.getX(i), z = pos.getZ(i);
     const slope = 1 - nrm.getY(i);
     const grain = fbm(x * 0.15, z * 0.15, 3) * 0.5 + 0.5;
-    c.copy(rust).lerp(sand, smoothstep(0.5, 3.5, y) * 0.7 + grain * 0.25);
-    c.lerp(dark, smoothstep(0.08, 0.35, slope) * 0.6);
+    c.copy(rust).lerp(sand, Math.min(tarAmount(x, z), 1) * 0.75 + grain * 0.25);
+    c.lerp(dark, smoothstep(0.04, 0.25, slope) * 0.6);
     colors.set([c.r, c.g, c.b], i * 3);
   }
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));

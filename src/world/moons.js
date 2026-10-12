@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import { rng } from '../utils/noise.js';
+import { skyDirection } from '../utils/math.js';
+import { SUN_AZIMUTH } from '../config.js';
+
+const SKY_DISTANCE = 900;
 
 // Irregular "potato-shaped" moons: a deformed sphere.
 function moonGeometry(radius, seed, stretch) {
@@ -36,14 +40,16 @@ export function createMoons() {
     fog: false,
   });
 
-  // Phobos: larger and elongated, to the right of the sun
+  // Phobos: larger and elongated, to the right of the sun.
+  // Sizes are exaggerated ~10× so they read on screen: from the surface Phobos spans ~0.2°
+  // and Deimos looks almost like a bright star.
   const phobos = new THREE.Mesh(moonGeometry(16, 7, 1.35), mat);
-  phobos.position.set(0.38, 0.3, -1).normalize().multiplyScalar(900);
+  phobos.position.copy(skyDirection(SUN_AZIMUTH + 22, 17)).multiplyScalar(SKY_DISTANCE);
   phobos.rotation.set(0.4, 0.8, 0.2);
 
   // Deimos: small and distant, to the left
   const deimos = new THREE.Mesh(moonGeometry(6, 13, 1.15), mat);
-  deimos.position.set(-0.55, 0.36, -1).normalize().multiplyScalar(900);
+  deimos.position.copy(skyDirection(SUN_AZIMUTH - 32, 20)).multiplyScalar(SKY_DISTANCE);
 
   group.add(phobos, deimos);
   group.userData = { phobos, deimos };

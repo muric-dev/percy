@@ -40,7 +40,10 @@ const OUT_DRIVE = 'screenshots/check-drive.png';
 await page.keyboard.down('KeyW');
 await page.waitForTimeout(3000);
 await page.keyboard.down('KeyA');
-await page.waitForTimeout(2000);
+await page.waitForTimeout(1200);
+const OUT_TURN = 'screenshots/check-turn.png'; // mid-turn: corner wheels should be steered
+await page.screenshot({ path: OUT_TURN });
+await page.waitForTimeout(800);
 await page.keyboard.up('KeyA');
 await page.waitForTimeout(1500);
 await page.keyboard.up('KeyW');
@@ -49,7 +52,7 @@ await page.screenshot({ path: OUT_DRIVE });
 await browser.close();
 
 if (logs.length) console.log('Console:\n' + logs.join('\n') + '\n');
-console.log(`Screenshots: ${OUT}, ${OUT_DRIVE}`);
+console.log(`Screenshots: ${OUT}, ${OUT_TURN}, ${OUT_DRIVE}`);
 if (errors.length) {
   console.log(`\n${errors.length} console error(s)/warning(s):`);
   errors.forEach((e) => console.log(' - ' + e));

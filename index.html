@@ -7,9 +7,14 @@
   <title>Perseverance · Jezero Crater</title>
   <style>html,body{margin:0;height:100%;overflow:hidden;background:#c8956a}canvas{display:block}
     #hud{position:fixed;left:16px;bottom:16px;padding:8px 12px;border-radius:8px;background:rgba(40,18,8,.45);color:#ffe2c4;font:13px/1.4 system-ui,sans-serif;pointer-events:none;letter-spacing:.02em}
-    #hud b{color:#fff}</style>
+    #hud b{color:#fff}
+    #map{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+    #minimap{width:180px;height:180px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,226,196,.55),0 4px 18px rgba(40,18,8,.45)}
+    #map-info{padding:4px 10px;border-radius:8px;background:rgba(40,18,8,.45);color:#ffe2c4;font:12px/1.4 system-ui,sans-serif;white-space:nowrap}
+    @media (max-width:600px){#minimap{width:120px;height:120px}#map-info{font-size:11px}}</style>
 </head>
 <body>
+  <div id="map"><canvas id="minimap"></canvas><div id="map-info"></div></div>
   <div id="hud"><b>WASD</b> drive · <b>mouse</b> orbit camera · <b>click</b> enable sound</div>
   <script type="module" src="/src/main.js"></script>
 </body>

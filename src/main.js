@@ -8,10 +8,13 @@ import { createTerrain } from './world/terrain.js';
 import { createRocks } from './world/rocks.js';
 import { createMoons, updateMoons } from './world/moons.js';
 import { createDust, updateDust } from './world/dust.js';
+import { createHorizon, updateHorizon } from './world/horizon.js';
 import { loadRover } from './rover/model.js';
 import { createDriver } from './rover/driver.js';
 import { createTracks, updateTracks } from './rover/tracks.js';
 import { createFollowCamera } from './rover/followCamera.js';
+import { createWheels } from './rover/wheels.js';
+import { createMinimap } from './ui/minimap.js';
 
 const { renderer, scene, camera, controls, render } = createStage();
 
@@ -20,19 +23,22 @@ const { sun, sky } = createLights();
 const moons = createMoons();
 const dust = createDust();
 const tracks = createTracks();
-scene.add(sun, sun.target, sky, createSky(), createTerrain(), createRocks(), moons, dust, tracks);
+const horizon = createHorizon();
+const terrain = createTerrain();
+scene.add(sun, sun.target, sky, createSky(), horizon, terrain, createRocks(), moons, dust, tracks);
+const minimap = createMinimap(document.getElementById('minimap'), document.getElementById('map-info'), terrain);
 
 // View while the rover loads
 camera.position.set(ROVER_START.x + 5, 6, ROVER_START.z + 10);
 controls.target.set(ROVER_START.x, 2, ROVER_START.z);
 
 // Rover (loaded in the background)
-let rover = null, driver = null, follow = null;
+let rover = null, driver = null, follow = null, wheels = null;
 loadRover().then((model) => {
   rover = model;
+  wheels = createWheels(rover); // before placing the rover: wheels are split in rover space
   driver = createDriver(rover, ROVER_START);
   scene.add(rover);
-  camera.position.set(ROVER_START.x - 7, rover.position.y + 2.2, ROVER_START.z + 5);
   follow = createFollowCamera(camera, controls, rover);
   window.__ready = true; // signal for npm run check
 });
@@ -46,13 +52,16 @@ renderer.setAnimationLoop(() => {
   updateDust(dust, dt, t);
   updateMoons(moons, t);
   if (rover) {
-    const { speed, effort } = driver.update(dt);
+    const drive = driver.update(dt);
+    wheels.update(dt, drive);
     updateTracks(tracks, rover);
-    follow.update(dt, speed);
+    follow.update(dt, drive.speed);
     aimSunAt(sun, rover.position);
-    updateAudio(effort);
+    minimap.update(rover);
+    updateAudio(drive.effort, drive.event);
   }
 
   controls.update();
+  updateHorizon(horizon, camera);
   render();
 });

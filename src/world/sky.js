@@ -34,9 +34,11 @@ export function createSky() {
         col += vec3(1.0, 0.62, 0.32) * pow(s, 8.0) * 0.25;
         // Blue halo of the Martian sunset
         col = mix(col, halo, pow(s, 60.0) * 0.45);
-        // Solar disc (smaller than seen from Earth)
-        col += sunColor * smoothstep(0.9993, 0.9997, s) * 2.5;
-        col += sunColor * pow(s, 900.0) * 0.8;
+        // Solar disc: 0.35° across from Mars (1.52 AU), two thirds of what we see from Earth.
+        // 1 - cos(angle) ≈ angle² / 2; the disc radius is 0.175° = 0.00305 rad.
+        float fromCenter = 1.0 - s;
+        col += sunColor * (1.0 - smoothstep(3.6e-6, 5.6e-6, fromCenter)) * 6.0;
+        col += sunColor * pow(s, 3000.0) * 0.6;
         // Below the horizon, same tone as the fog
         col = mix(col, horizon, smoothstep(0.0, -0.05, d.y));
         gl_FragColor = vec4(col, 1.0);

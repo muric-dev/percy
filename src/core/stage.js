@@ -18,7 +18,7 @@ export function createStage() {
   document.body.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(DUST_COLOR, 0.0045);
+  scene.fog = new THREE.FogExp2(DUST_COLOR, 0.0035);
 
   const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 4000);
 
