@@ -19,6 +19,7 @@ import { createFollowCamera } from './rover/followCamera.js';
 import { createWheels } from './rover/wheels.js';
 import { createMinimap } from './ui/minimap.js';
 import { createSkymap } from './ui/skymap.js';
+import { createClockHud } from './ui/clockHud.js';
 
 const { renderer, scene, camera, controls, render } = createStage();
 
@@ -40,6 +41,7 @@ scene.add(lights.sun, lights.sun.target, lights.sky, skyDome, starfield, horizon
 const $ = (id) => document.getElementById(id);
 const minimap = createMinimap($('minimap'), $('map-info'), terrain);
 const skymap = createSkymap($('skymap'), $('sky-info'));
+const clockHud = createClockHud($('clock'));
 const boostLabel = $('boost');
 
 // View while the rover loads
@@ -74,6 +76,7 @@ renderer.setAnimationLoop(() => {
   updateSky(skyDome, sky.sunDir, look);
   updateDust(dust, dt, t, look.daylight);
   skymap.update(dt, sky, look);
+  clockHud.update(clock.status, sky.ltst);
 
   if (rover) {
     const drive = driver.update(dt);
