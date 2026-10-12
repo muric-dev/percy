@@ -16,7 +16,7 @@ export async function loadRover() {
   enableShadows(model);
   scaleToRealSize(model);
   const cameras = findCameras(model);
-  console.log('Cámaras del rover:\n' + cameras.map((c) => '  · ' + c.name).join('\n'));
+  console.log('Rover cameras:\n' + cameras.map((c) => '  · ' + c.name).join('\n'));
 
   const rover = new THREE.Group();
   rover.add(model);
@@ -39,8 +39,8 @@ function scaleToRealSize(model) {
   const box = new THREE.Box3().setFromObject(model);
   model.position.y -= box.min.y;
   const s = box.getSize(new THREE.Vector3());
-  console.log(`Escala aplicada al modelo de la NASA: ×${scale.toFixed(3)}`);
-  console.log(`Perseverance: ${s.x.toFixed(2)} m ancho × ${s.z.toFixed(2)} m largo (con brazo) × ${s.y.toFixed(2)} m alto`);
+  console.log(`Scale applied to the NASA model: ×${scale.toFixed(3)}`);
+  console.log(`Perseverance: ${s.x.toFixed(2)} m wide × ${s.z.toFixed(2)} m long (with arm) × ${s.y.toFixed(2)} m tall`);
 }
 
 // Parts that are cameras (to be used later)

@@ -24,13 +24,13 @@ page.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`));
 try {
   await page.goto(URL, { waitUntil: 'load', timeout: 15000 });
 } catch (e) {
-  console.error(`No se pudo abrir ${URL}. ¿Está corriendo "npm run dev"?\n${e.message}`);
+  console.error(`Could not open ${URL}. Is "npm run dev" running?\n${e.message}`);
   await browser.close();
   process.exit(1);
 }
 // Wait for the rover to load (window.__ready), if the scene sets it
 await page.waitForFunction(() => window.__ready, null, { timeout: 30000 }).catch(() => {
-  errors.push('[check] la escena no marcó window.__ready en 30 s');
+  errors.push('[check] the scene did not set window.__ready within 30 s');
 });
 await page.waitForTimeout(2500);
 await page.screenshot({ path: OUT });
@@ -48,11 +48,11 @@ await page.waitForTimeout(1500);
 await page.screenshot({ path: OUT_DRIVE });
 await browser.close();
 
-if (logs.length) console.log('Consola:\n' + logs.join('\n') + '\n');
-console.log(`Capturas: ${OUT}, ${OUT_DRIVE}`);
+if (logs.length) console.log('Console:\n' + logs.join('\n') + '\n');
+console.log(`Screenshots: ${OUT}, ${OUT_DRIVE}`);
 if (errors.length) {
-  console.log(`\n${errors.length} error(es)/aviso(s) de consola:`);
+  console.log(`\n${errors.length} console error(s)/warning(s):`);
   errors.forEach((e) => console.log(' - ' + e));
   process.exit(1);
 }
-console.log('Sin errores de consola ✅');
+console.log('No console errors ✅');
