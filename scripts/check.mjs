@@ -59,10 +59,16 @@ await page.waitForFunction(() => window.__ready, null, { timeout: 30000 }).catch
 });
 await page.waitForTimeout(2000);
 await page.screenshot({ path: OUT_NIGHT });
+
+// Sky view (V): camera on the mast looking straight up
+const OUT_SKY = 'screenshots/check-skyview.png';
+await page.keyboard.press('KeyV');
+await page.waitForTimeout(1000);
+await page.screenshot({ path: OUT_SKY });
 await browser.close();
 
 if (logs.length) console.log('Console:\n' + logs.join('\n') + '\n');
-console.log(`Screenshots: ${OUT}, ${OUT_TURN}, ${OUT_DRIVE}, ${OUT_NIGHT}`);
+console.log(`Screenshots: ${OUT}, ${OUT_TURN}, ${OUT_DRIVE}, ${OUT_NIGHT}, ${OUT_SKY}`);
 if (errors.length) {
   console.log(`\n${errors.length} console error(s)/warning(s):`);
   errors.forEach((e) => console.log(' - ' + e));
