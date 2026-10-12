@@ -27,6 +27,7 @@ const horizon = createHorizon();
 const terrain = createTerrain();
 scene.add(sun, sun.target, sky, createSky(), horizon, terrain, createRocks(), moons, dust, tracks);
 const minimap = createMinimap(document.getElementById('minimap'), document.getElementById('map-info'), terrain);
+const boostLabel = document.getElementById('boost');
 
 // View while the rover loads
 camera.position.set(ROVER_START.x + 5, 6, ROVER_START.z + 10);
@@ -59,6 +60,8 @@ renderer.setAnimationLoop(() => {
     aimSunAt(sun, rover.position);
     minimap.update(rover);
     updateAudio(drive.effort, drive.event);
+    boostLabel.textContent = drive.boost ? 'ON' : 'off';
+    boostLabel.classList.toggle('on', drive.boost);
   }
 
   controls.update();

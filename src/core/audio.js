@@ -140,8 +140,8 @@ addEventListener('keydown', startAudio);
 export function updateAudio(effort, event) {
   if (!ctx) return;
   const t = ctx.currentTime;
-  motorGain.gain.setTargetAtTime(effort * 0.05, t, 0.1);
-  motorOsc.frequency.setTargetAtTime(55 + effort * 70, t, 0.1);
-  motorFilter.frequency.setTargetAtTime(300 + effort * 500, t, 0.1);
+  motorGain.gain.setTargetAtTime(effort * 0.08, t, 0.1);
+  motorOsc.frequency.setTargetAtTime(55 + effort * 120, t, 0.1);
+  motorFilter.frequency.setTargetAtTime(300 + effort * 900, t, 0.1);
   if (event) HYDRAULICS[event]();
 }

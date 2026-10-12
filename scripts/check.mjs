@@ -37,6 +37,7 @@ await page.screenshot({ path: OUT });
 
 // Driving test: forward, turn and forward; then another screenshot showing the tracks
 const OUT_DRIVE = 'screenshots/check-drive.png';
+await page.keyboard.press('KeyQ'); // double speed
 await page.keyboard.down('KeyW');
 await page.waitForTimeout(3000);
 await page.keyboard.down('KeyA');
