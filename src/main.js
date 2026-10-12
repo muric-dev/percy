@@ -7,6 +7,7 @@ import { altAz } from './astro/ephemeris.js';
 import { createLights, updateLights } from './world/lighting.js';
 import { createSky, updateSky, skyLook } from './world/sky.js';
 import { createStarfield, updateStarfield } from './world/starfield.js';
+import { createSkyGuide, updateSkyGuide } from './world/skyguide.js';
 import { createTerrain } from './world/terrain.js';
 import { createRocks } from './world/rocks.js';
 import { createMoons, updateMoons } from './world/moons.js';
@@ -31,12 +32,13 @@ const clock = createMarsClock(Number.isFinite(startHour) ? { startLocalTime: sta
 const lights = createLights();
 const skyDome = createSky();
 const starfield = createStarfield(clock.sky.planets);
+const skyGuide = createSkyGuide(clock.sky.planets);
 const moons = createMoons();
 const dust = createDust();
 const tracks = createTracks();
 const horizon = createHorizon();
 const terrain = createTerrain();
-scene.add(lights.sun, lights.sun.target, lights.sky, skyDome, starfield, horizon, terrain, createRocks(), moons, dust, tracks);
+scene.add(lights.sun, lights.sun.target, lights.sky, skyDome, starfield, skyGuide, horizon, terrain, createRocks(), moons, dust, tracks);
 
 const $ = (id) => document.getElementById(id);
 const minimap = createMinimap($('minimap'), $('map-info'), terrain);
@@ -93,6 +95,7 @@ renderer.setAnimationLoop(() => {
   controls.update();
   updateHorizon(horizon, camera, look);
   updateStarfield(starfield, camera, sky, look.stars);
+  updateSkyGuide(skyGuide, camera, sky, look.stars);
   updateMoons(moons, camera, sky, t);
   render();
 });
