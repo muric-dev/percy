@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ROVER_START } from './config.js';
 import { createStage } from './core/stage.js';
-import { updateAudio, isAudioOn, toggleSound } from './core/audio.js';
+import { updateAudio, isAudioOn, toggleSound, isMusicOn, toggleMusic } from './core/audio.js';
 import { onPress } from './core/input.js';
 import { createMarsClock } from './astro/clock.js';
 import { altAz } from './astro/ephemeris.js';
@@ -58,6 +58,8 @@ soundButton.addEventListener('click', (e) => {
   soundButton.blur(); // keep Space/Enter from re-triggering it
 });
 onPress('KeyM', toggleSound);
+onPress('KeyN', toggleMusic);
+const musicLabel = $('music');
 let soundShown = false;
 
 // View while the rover loads
@@ -100,9 +102,10 @@ renderer.setAnimationLoop(() => {
     updateTracks(tracks, rover);
     follow.update(dt, drive.speed);
     minimap.update(rover, sky.sunDir);
-    updateAudio(drive.effort, drive.event);
+    updateAudio(dt, drive, { distance: camera.position.distanceTo(rover.position), daylight: look.daylight });
     boostLabel.textContent = drive.boost ? 'ON' : 'off';
     boostLabel.classList.toggle('on', drive.boost);
+    musicLabel.textContent = isMusicOn() ? 'on' : 'off';
   }
   if (isAudioOn() !== soundShown) {
     soundShown = isAudioOn();
