@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DUST_COLOR, MARS_RADIUS } from '../config.js';
+import { MARS_RADIUS } from '../config.js';
 import { fbm } from '../utils/noise.js';
 
 // Distant skyline seen from the landing site: the rim of Jezero crater and, to the west, the delta.
@@ -55,9 +55,9 @@ function ring(radius, fromDeg, toDeg, elevationFn, haze) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geo.setIndex(indices);
-  const color = new THREE.Color(0x7a4a32).lerp(new THREE.Color(DUST_COLOR), haze);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, fog: false, side: THREE.DoubleSide }));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ fog: false, side: THREE.DoubleSide }));
   mesh.frustumCulled = false;
+  mesh.userData.haze = haze;
   return mesh;
 }
 
@@ -70,7 +70,12 @@ export function createHorizon() {
   return horizon;
 }
 
-// The skyline is effectively at infinity: keep it centered on the viewer
-export function updateHorizon(horizon, camera) {
+// The skyline is effectively at infinity: keep it centered on the viewer. Its color is the lit
+// rock seen through dust, so it follows the sky through the sol (look: from skyLook()).
+const ROCK = new THREE.Color(0x7a4a32);
+export function updateHorizon(horizon, camera, look) {
   horizon.position.copy(camera.position);
+  for (const ring of horizon.children) {
+    ring.material.color.copy(ROCK).multiplyScalar(0.08 + 0.92 * look.daylight).lerp(look.horizon, ring.userData.haze);
+  }
 }

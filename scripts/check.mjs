@@ -50,10 +50,19 @@ await page.waitForTimeout(1500);
 await page.keyboard.up('KeyW');
 await page.waitForTimeout(1500);
 await page.screenshot({ path: OUT_DRIVE });
+
+// Night: start the Martian clock at 23:00 local time to see the stars and the sky map
+const OUT_NIGHT = 'screenshots/check-night.png';
+await page.goto(`${URL}/?time=23`, { waitUntil: 'load' });
+await page.waitForFunction(() => window.__ready, null, { timeout: 30000 }).catch(() => {
+  errors.push('[check] the night scene did not set window.__ready within 30 s');
+});
+await page.waitForTimeout(2000);
+await page.screenshot({ path: OUT_NIGHT });
 await browser.close();
 
 if (logs.length) console.log('Console:\n' + logs.join('\n') + '\n');
-console.log(`Screenshots: ${OUT}, ${OUT_TURN}, ${OUT_DRIVE}`);
+console.log(`Screenshots: ${OUT}, ${OUT_TURN}, ${OUT_DRIVE}, ${OUT_NIGHT}`);
 if (errors.length) {
   console.log(`\n${errors.length} console error(s)/warning(s):`);
   errors.forEach((e) => console.log(' - ' + e));

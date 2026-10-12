@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { SUN_DIRECTION } from '../config.js';
 import { bearingOf, yawOf } from '../utils/math.js';
 
 // North-up minimap centered on the rover: shaded-relief terrain, the path driven so far,
@@ -27,7 +26,8 @@ export function createMinimap(canvas, info, terrain) {
   const trail = [];
   let traveled = 0;
 
-  function update(rover) {
+  // sunDir: current direction of the sun in the scene (shown on the edge while it is up)
+  function update(rover, sunDir) {
     const { x, z } = rover.position;
     const yaw = yawOf(rover);
     const last = trail.at(-1);
@@ -63,7 +63,7 @@ export function createMinimap(canvas, info, terrain) {
     g.stroke();
     g.setLineDash([]);
 
-    drawCompass(g, c);
+    drawCompass(g, c, sunDir);
     drawRover(g, c, yaw);
     g.restore();
 
@@ -96,7 +96,7 @@ function shadedRelief(geo, side) {
   return canvas;
 }
 
-function drawCompass(g, c) {
+function drawCompass(g, c, sunDir) {
   g.font = '600 11px system-ui, sans-serif';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
@@ -106,7 +106,8 @@ function drawCompass(g, c) {
   });
 
   // Sun marker on the edge, in the sun's direction
-  const sun = new THREE.Vector2(SUN_DIRECTION.x, SUN_DIRECTION.z).normalize();
+  if (sunDir.y < 0) return;
+  const sun = new THREE.Vector2(sunDir.x, sunDir.z).normalize();
   g.fillStyle = '#ffe9b0';
   g.beginPath();
   g.arc(c + sun.x * (c - 24), c + sun.y * (c - 24), 4, 0, Math.PI * 2);

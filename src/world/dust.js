@@ -38,7 +38,9 @@ export function createDust() {
   return new THREE.Points(geo, mat);
 }
 
-export function updateDust(points, dt, t) {
+// daylight: 0 (night) … 1 (day); the dust only glows when the sun lights it
+export function updateDust(points, dt, t, daylight) {
+  points.material.opacity = 0.55 * daylight;
   const p = points.geometry.attributes.position;
   for (let i = 0; i < p.count; i++) {
     let x = p.getX(i) + dt * 2.2;

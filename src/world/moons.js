@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import { rng } from '../utils/noise.js';
-import { skyDirection } from '../utils/math.js';
-import { SUN_AZIMUTH } from '../config.js';
 
 const SKY_DISTANCE = 900;
 
@@ -31,33 +29,54 @@ function moonGeometry(radius, seed, stretch) {
   return geo;
 }
 
+// Lit by the true sun direction (even when the sun is below our horizon), so they show phases
+function moonMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: { sunDir: { value: new THREE.Vector3(0, 1, 0) }, color: { value: new THREE.Color(0xb8a090) } },
+    vertexShader: /* glsl */ `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        gl_Position.z = gl_Position.w * 0.999995; // just in front of the stars, behind the skyline
+      }`,
+    fragmentShader: /* glsl */ `
+      uniform vec3 sunDir, color;
+      varying vec3 vNormal;
+      void main() {
+        float light = max(dot(normalize(vNormal), sunDir), 0.0);
+        gl_FragColor = vec4(color * (0.04 + 1.1 * light), 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+}
+
 export function createMoons() {
   const group = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xc4ab96,
-    roughness: 1,
-    emissive: 0x6a5242,
-    fog: false,
-  });
+  const mat = moonMaterial();
 
-  // Phobos: larger and elongated, to the right of the sun.
   // Sizes are exaggerated ~10× so they read on screen: from the surface Phobos spans ~0.2°
   // and Deimos looks almost like a bright star.
   const phobos = new THREE.Mesh(moonGeometry(16, 7, 1.35), mat);
-  phobos.position.copy(skyDirection(SUN_AZIMUTH + 22, 17)).multiplyScalar(SKY_DISTANCE);
   phobos.rotation.set(0.4, 0.8, 0.2);
-
-  // Deimos: small and distant, to the left
   const deimos = new THREE.Mesh(moonGeometry(6, 13, 1.15), mat);
-  deimos.position.copy(skyDirection(SUN_AZIMUTH - 32, 20)).multiplyScalar(SKY_DISTANCE);
 
   group.add(phobos, deimos);
   group.userData = { phobos, deimos };
   return group;
 }
 
-export function updateMoons(group, t) {
+// sky: output of skyAt(), with the moons' directions and the sun direction
+export function updateMoons(group, camera, sky, t) {
   const { phobos, deimos } = group.userData;
+  group.position.copy(camera.position);
+  for (const [name, moon] of [['phobos', phobos], ['deimos', deimos]]) {
+    const dir = sky.moons[name];
+    moon.position.copy(dir).multiplyScalar(SKY_DISTANCE);
+    moon.visible = dir.y > -0.03;
+  }
+  phobos.material.uniforms.sunDir.value.copy(sky.sunDir);
   phobos.rotation.y = 0.8 + t * 0.05;
   deimos.rotation.y = t * 0.02;
 }
