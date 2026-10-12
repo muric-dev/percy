@@ -22,6 +22,7 @@ import { createWheels } from './rover/wheels.js';
 import { createMinimap } from './ui/minimap.js';
 import { createSkymap } from './ui/skymap.js';
 import { createClockHud } from './ui/clockHud.js';
+import { installMissionControl } from './mission/plugin.js';
 
 const { renderer, scene, camera, controls, render } = createStage();
 
@@ -46,6 +47,7 @@ const minimap = createMinimap($('minimap'), $('map-info'), terrain);
 const skymap = createSkymap($('skymap'), $('sky-info'));
 const clockHud = createClockHud($('clock'));
 const boostLabel = $('boost');
+installMissionControl(); // real Perseverance telemetry on the right (T hides it)
 
 // Sound button (and M): its clicks must not reach the "any gesture starts audio" listeners
 const soundButton = $('sound');

@@ -27,7 +27,7 @@ const ELEMENTS = {
 };
 
 // Heliocentric position (AU) in equatorial J2000 coordinates
-function heliocentric(planet, d) {
+export function heliocentric(planet, d) {
   const T = d / 36525;
   const [a0, da, e0, de, I0, dI, L0, dL, w0, dw, N0, dN] = ELEMENTS[planet];
   const a = a0 + da * T, e = e0 + de * T, I = (I0 + dI * T) * DEG;
@@ -95,6 +95,13 @@ export function marsTime(d) {
   const ltst = (((lmst + eot / 15) % 24) + 24) % 24;
   return { ls, ltst };
 }
+
+// Mars Sol Date (Mars24): sols elapsed since the Martian epoch, at Mars's prime meridian
+export const marsSolDate = (d) => (d - 4.5) / SOL_IN_DAYS + 44796.0 - 0.0009626;
+
+// Seconds a radio signal takes to cross the Earth–Mars distance at time d
+const AU_LIGHT_SECONDS = 499.004784;
+export const lightTimeSeconds = (d) => heliocentric('mars', d).distanceTo(heliocentric('earth', d)) * AU_LIGHT_SECONDS;
 
 const PLANETS = [
   { name: 'Earth', key: 'earth', mag: -1.5, color: 0x9cc4ff },

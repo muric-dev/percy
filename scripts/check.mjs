@@ -35,6 +35,44 @@ await page.waitForFunction(() => window.__ready, null, { timeout: 30000 }).catch
 await page.waitForTimeout(2500);
 await page.screenshot({ path: OUT });
 
+// Mission control: the 4 channels must load real numbers, light time must tick live and T must hide it
+const CHANNELS = {
+  distance: [1, 1000], // km driven since landing
+  elevation: [-5000, 0], // m, Jezero lies kilometers below Mars's average level
+  tilt: [0, 45], // degrees
+  lightTime: [3, 23], // min: 3.0 at closest approach, 22.3 at farthest
+};
+const loaded = await page
+  .waitForFunction((keys) => keys.every((k) => window.__missionControl?.channels[k]?.value != null), Object.keys(CHANNELS), { timeout: 20000 })
+  .then(() => true, () => false);
+const mission = await page.evaluate(() => window.__missionControl);
+console.log('Mission control:');
+for (const [key, [min, max]] of Object.entries(CHANNELS)) {
+  const c = mission?.channels[key];
+  const ok = c && Number.isFinite(c.value) && c.value >= min && c.value <= max && c.points > 1;
+  console.log(` ${ok ? '✅' : '❌'} ${c?.name ?? key}: ${c?.value ?? '—'} ${c?.unit ?? ''} (${c?.points ?? 0} points · ${c?.provider ?? 'no provider'})`);
+  if (!ok) errors.push(`[check] mission control "${key}" did not load a real value${loaded ? '' : ' within 20 s'}`);
+}
+const lightBefore = mission?.channels.lightTime?.updatedAt;
+await page.waitForTimeout(2200);
+const lightAfter = await page.evaluate(() => window.__missionControl?.channels.lightTime?.updatedAt);
+if (!lightBefore || lightAfter === lightBefore) errors.push('[check] mission control light time is not updating live');
+const panelVisible = () => page.evaluate(() => !!document.getElementById('mission')?.checkVisibility());
+const OUT_MISSION = 'screenshots/check-mission.png';
+await page.mouse.move(1450, 345); // hover the first chart to show its crosshair readout
+await page.waitForTimeout(200);
+await page.screenshot({ path: OUT_MISSION });
+const shownAtStart = await panelVisible();
+await page.keyboard.press('KeyT');
+await page.waitForTimeout(200);
+const hiddenByT = !(await panelVisible());
+await page.keyboard.press('KeyT');
+await page.waitForTimeout(200);
+const shownAgain = await panelVisible();
+console.log(` ${shownAtStart && hiddenByT && shownAgain ? '✅' : '❌'} T hides and shows the panel\n`);
+if (!(shownAtStart && hiddenByT && shownAgain)) errors.push('[check] T does not hide/show mission control');
+await page.mouse.move(800, 450);
+
 // Driving test: forward, turn and forward; then another screenshot showing the tracks
 const OUT_DRIVE = 'screenshots/check-drive.png';
 await page.keyboard.press('KeyQ'); // double speed
@@ -68,7 +106,7 @@ await page.screenshot({ path: OUT_SKY });
 await browser.close();
 
 if (logs.length) console.log('Console:\n' + logs.join('\n') + '\n');
-console.log(`Screenshots: ${OUT}, ${OUT_TURN}, ${OUT_DRIVE}, ${OUT_NIGHT}, ${OUT_SKY}`);
+console.log(`Screenshots: ${OUT}, ${OUT_MISSION}, ${OUT_TURN}, ${OUT_DRIVE}, ${OUT_NIGHT}, ${OUT_SKY}`);
 if (errors.length) {
   console.log(`\n${errors.length} console error(s)/warning(s):`);
   errors.forEach((e) => console.log(' - ' + e));
