@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ROVER_START } from './config.js';
 import { createStage } from './core/stage.js';
-import { updateAudio } from './core/audio.js';
+import { updateAudio, isAudioOn } from './core/audio.js';
 import { createMarsClock } from './astro/clock.js';
 import { altAz } from './astro/ephemeris.js';
 import { createLights, updateLights } from './world/lighting.js';
@@ -45,6 +45,8 @@ const minimap = createMinimap($('minimap'), $('map-info'), terrain);
 const skymap = createSkymap($('skymap'), $('sky-info'));
 const clockHud = createClockHud($('clock'));
 const boostLabel = $('boost');
+const soundLabel = $('sound');
+let soundShown = false;
 
 // View while the rover loads
 camera.position.set(ROVER_START.x + 5, 6, ROVER_START.z + 10);
@@ -89,6 +91,10 @@ renderer.setAnimationLoop(() => {
     updateAudio(drive.effort, drive.event);
     boostLabel.textContent = drive.boost ? 'ON' : 'off';
     boostLabel.classList.toggle('on', drive.boost);
+  }
+  if (isAudioOn() !== soundShown) {
+    soundShown = isAudioOn();
+    soundLabel.innerHTML = soundShown ? '🔊 sound on' : '<b>click</b> to enable sound';
   }
   updateLights(lights, controls.target, sky.sunDir, sunAlt, look);
 
