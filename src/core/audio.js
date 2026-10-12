@@ -11,6 +11,10 @@ import { createMusic } from './music.js';
 //   0.34 /m at 6–11 kHz (an 8 kHz tone loses 40 dB in 8 m; on Earth, 20 dB).
 // - Sound travels at ~240 m/s, so the rover is heard slightly late from far away.
 // - Driving sounds like the bangs, pings and rattles of the aluminum wheels on rocks.
+// - The rover is electric: each wheel has its own geared electric actuator (the four corner
+//   wheels also have steering actuators) and brakes hold the wheels when it stops. NASA has not
+//   published the motor type, so this is a generic gearmotor: a whine that follows the motor
+//   speed plus the higher gear-mesh tone, six of them slightly out of step.
 // Browsers only allow audio after a user gesture, so it is created on the first click/key press.
 // Everything that reacts to driving or gusts moves half as much as it used to (SWING) so the
 // soundscape stays calm.
@@ -28,10 +32,10 @@ const GUST_TIME = 6; // s: how long a gust takes to build or fade
 const GUST_DEPTH = 0.6 * SWING; // ± fraction of the wind level
 
 let ctx = null;
-let roverBus, motorGain, motorOsc, motorFilter, music;
+let roverBus, motorGain, motorFilter, motors, gearTone, music;
 let air; // propagation from the rover to the camera: delay, distance gain and absorption
 let wind; // filters and gain of the turbulence noise
-let gust = 0, clankDebt = 0;
+let gust = 0, clankDebt = 0, wasSteering = false;
 const buffers = {};
 
 function noiseBuffer(seconds = 4) {
@@ -83,22 +87,28 @@ function tone({ type = 'sine', from, to, attack = 0.02, decay, peak, filterFreq 
   osc.stop(start + attack + decay + 0.05);
 }
 
-// Pitch glides and peaks are half as wide and as loud as before (SWING)
-const HYDRAULICS = {
-  // Valve opens, the pump spins up and pressurizes the drive actuators
+// Electric drive: one geared motor per wheel, each a few cents off the others so they beat
+// together. Pitch follows speed (half as much as before, SWING); the gear-mesh tone sits above.
+const MOTOR = { idle: 140, range: 260, gearMesh: 3.6, detune: [-22, -9, -3, 4, 11, 19] }; // Hz, Hz, ×, cents
+const WHINE = [0, 1, 0.55, 0.3, 0.18, 0.1, 0.06]; // harmonic amplitudes of the motor whine
+
+const BRAKES = {
+  // The wheel brakes release with a small solenoid tick before the motors spin up
   accelerate() {
-    noiseBurst({ type: 'highpass', freq: 1200, decay: 0.03, peak: 0.12 }); // valve click
-    tone({ type: 'sawtooth', from: 110, to: 170, attack: 0.15, decay: 0.7, peak: 0.06, filterFreq: 900 });
-    noiseBurst({ freq: 900, to: 1100, q: 1.2, attack: 0.05, decay: 0.35, peak: 0.06, delay: 0.05 });
+    noiseBurst({ type: 'highpass', freq: 2500, decay: 0.015, peak: 0.1 });
+    tone({ from: 320, to: 240, attack: 0.002, decay: 0.05, peak: 0.05, filterFreq: 1200 });
   },
-  // Brakes clamp (clunk), pressure is released (hiss) and the pump winds down
+  // The brakes clamp: a firmer tick and the gear train settling with a soft clunk
   brake() {
-    tone({ from: 160, to: 105, attack: 0.005, decay: 0.2, peak: 0.22, filterFreq: 600 });
-    noiseBurst({ type: 'highpass', freq: 900, decay: 0.04, peak: 0.15 }); // metallic contact
-    noiseBurst({ freq: 1300, to: 760, q: 0.9, attack: 0.02, decay: 0.9, peak: 0.11, delay: 0.04 });
-    tone({ type: 'sawtooth', from: 180, to: 100, attack: 0.02, decay: 0.6, peak: 0.04, filterFreq: 500 });
+    noiseBurst({ type: 'highpass', freq: 2200, decay: 0.02, peak: 0.14 });
+    tone({ from: 150, to: 95, attack: 0.004, decay: 0.15, peak: 0.12, filterFreq: 500, delay: 0.02 });
   },
 };
+
+// The four corner steering actuators turning the wheels: a short, higher whir
+function steeringWhir() {
+  for (const cents of [-12, 12]) tone({ type: 'triangle', from: 380, to: 470, attack: 0.05, decay: 0.35, peak: 0.035, filterFreq: 1500, delay: cents > 0 ? 0.03 : 0 });
+}
 
 // One wheel meeting a rock: a dull thud from the suspension and a short ring of the aluminum rim
 function wheelClank() {
@@ -144,12 +154,21 @@ function createAudioGraph() {
   };
   loopNoise().connect(wind.steep).connect(wind.gentle).connect(wind.gain).connect(master);
 
-  // Wheel motors: a low electric hum that rises a little with speed
-  motorOsc = new OscillatorNode(ctx, { type: 'sawtooth', frequency: 110 });
-  motorFilter = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 600 });
+  // Wheel motors: six geared electric motors and their gear-mesh tone
+  motorFilter = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 1200 });
   motorGain = new GainNode(ctx, { gain: 0 });
-  motorOsc.connect(motorFilter).connect(motorGain).connect(roverBus);
-  motorOsc.start();
+  motorFilter.connect(motorGain).connect(roverBus);
+  const whine = ctx.createPeriodicWave(new Float32Array(WHINE.length), new Float32Array(WHINE));
+  motors = MOTOR.detune.map((detune) => {
+    const osc = new OscillatorNode(ctx, { frequency: MOTOR.idle, detune });
+    osc.setPeriodicWave(whine);
+    osc.connect(motorFilter);
+    osc.start();
+    return osc;
+  });
+  gearTone = new OscillatorNode(ctx, { frequency: MOTOR.idle * MOTOR.gearMesh });
+  gearTone.connect(new GainNode(ctx, { gain: 0.6 })).connect(motorFilter);
+  gearTone.start();
 
   music = createMusic(ctx, master);
 }
@@ -188,9 +207,9 @@ export function toggleSound() {
   else ctx?.suspend();
 }
 
-// drive: { effort 0–1, speed m/s, event 'accelerate' | 'brake' | null }
+// drive: { effort 0–1, speed m/s, yawRate rad/s, event 'accelerate' | 'brake' | null }
 // distance: camera to rover (m); daylight: 0 at night, 1 in full day
-export function updateAudio(dt, { effort, speed, event }, { distance, daylight }) {
+export function updateAudio(dt, { effort, speed, yawRate, event }, { distance, daylight }) {
   if (!isAudioOn()) return;
   const t = ctx.currentTime;
 
@@ -210,15 +229,20 @@ export function updateAudio(dt, { effort, speed, event }, { distance, daylight }
   wind.steep.frequency.setTargetAtTime(corner, t, 0.3);
 
   // Motors and wheels
-  motorGain.gain.setTargetAtTime(effort * 0.16 * SWING, t, 0.1);
-  motorOsc.frequency.setTargetAtTime(110 + effort * 150 * SWING, t, 0.1);
-  motorFilter.frequency.setTargetAtTime(600 + effort * 1400 * SWING, t, 0.1);
+  // Motors spin up and down with some inertia: the pitch glides while the volume follows
+  const motorHz = MOTOR.idle + effort * MOTOR.range * SWING;
+  motors.forEach((osc) => osc.frequency.setTargetAtTime(motorHz, t, 0.4));
+  gearTone.frequency.setTargetAtTime(motorHz * MOTOR.gearMesh, t, 0.4);
+  motorGain.gain.setTargetAtTime(effort * 0.035, t, 0.3);
+  const steering = yawRate !== 0;
+  if (steering !== wasSteering) steeringWhir();
+  wasSteering = steering;
   clankDebt += Math.abs(speed) * 0.6 * dt * Math.random() * 2; // about one rock every 1.7 m
   if (clankDebt > 1) {
     clankDebt = 0;
     wheelClank();
   }
-  if (event) HYDRAULICS[event]();
+  if (event) BRAKES[event]();
 
   music.update(dt, effort, daylight);
 }

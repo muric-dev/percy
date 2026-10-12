@@ -14,8 +14,8 @@ const LEFT_KEYS = ['KeyA', 'ArrowLeft'], RIGHT_KEYS = ['KeyD', 'ArrowRight'];
 const BOOST_KEY = 'KeyQ';
 
 // WASD/arrow-key driving. Returns { update(dt) } and keeps the rover on the ground.
-// update() also reports hydraulic events: 'accelerate' when the rover starts driving and
-// 'brake' when it stops or reverses direction while moving.
+// update() also reports brake events for the sound: 'accelerate' when the rover starts driving
+// (brakes release) and 'brake' when it stops or reverses direction while moving.
 export function createDriver(rover, { x, z, heading }) {
   let speed = 0, lastThrottle = 0, boost = false;
   onPress(BOOST_KEY, () => (boost = !boost));
@@ -39,7 +39,7 @@ export function createDriver(rover, { x, z, heading }) {
 
     // Motor effort from 0 to 1 (for the sound); full effort only at double speed
     const effort = Math.min(Math.abs(speed) / (MAX_SPEED * BOOST) + (steer ? 0.15 : 0), 1);
-    const event = hydraulicEvent(lastThrottle, throttle, speed);
+    const event = brakeEvent(lastThrottle, throttle, speed);
     lastThrottle = throttle;
     return { speed, yawRate, effort, event, boost };
   }
@@ -49,7 +49,7 @@ export function createDriver(rover, { x, z, heading }) {
 
 const MOVING = 0.3; // m/s: below this a release is just stopping, not braking
 
-function hydraulicEvent(previous, current, speed) {
+function brakeEvent(previous, current, speed) {
   if (current === previous) return null;
   if (current !== 0 && (previous === 0 || Math.abs(speed) < MOVING)) return 'accelerate';
   if (Math.abs(speed) > MOVING) return 'brake'; // released or reversed while moving
