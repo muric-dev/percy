@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import { groundHeight } from '../world/terrain.js';
 import { damp, wrapAngle, yawOf } from '../utils/math.js';
 
-const LOOK_HEIGHT = 1.4; // la cámara mira a la altura del cuerpo del rover
-const MIN_CLEARANCE = 1.2; // altura mínima sobre el suelo
+const LOOK_HEIGHT = 1.4; // the camera looks at the height of the rover's body
+const MIN_CLEARANCE = 1.2; // minimum height above the ground
 const REALIGN_RATE = 1.5;
 
-// Cámara que sigue al rover: se mueve con él y, al conducir, se coloca poco a poco detrás.
-// El usuario puede girarla con el ratón en cualquier momento (OrbitControls).
+// Camera that follows the rover: it moves with it and, while driving, gradually swings behind it.
+// The user can orbit it with the mouse at any time (OrbitControls).
 export function createFollowCamera(camera, controls, rover) {
   let dragging = false;
   controls.addEventListener('start', () => (dragging = true));
@@ -29,7 +29,7 @@ export function createFollowCamera(camera, controls, rover) {
       camera.position.copy(controls.target).add(offset);
     }
 
-    // La cámara nunca se mete dentro de una duna
+    // The camera never goes inside a dune
     const minY = groundHeight(camera.position.x, camera.position.z) + MIN_CLEARANCE;
     camera.position.y = Math.max(camera.position.y, minY);
   }

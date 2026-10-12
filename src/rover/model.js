@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
-// Modelo oficial de la NASA (NASA-3D-Resources), ya viene en metros.
+// Official NASA model (NASA-3D-Resources), already in meters.
 const MODEL_URL = '/models/perseverance.glb';
-const REAL_WIDTH = 2.7; // ancho real del rover (m); largo real 3 m sin brazo
+const REAL_WIDTH = 2.7; // real rover width (m); real length is 3 m without the arm
 const CAMERA_NAME = /cam|camera|watson/i;
 const NOT_CAMERA = /cover|wiring|bracket/i;
-const WHEEL_HALF_WIDTH = 0.2; // para centrar cada huella bajo su rueda
+const WHEEL_HALF_WIDTH = 0.2; // to center each track mark under its wheel
 
 export async function loadRover() {
   const draco = new DRACOLoader().setDecoderPath('/draco/');
@@ -30,7 +30,7 @@ function enableShadows(model) {
   });
 }
 
-// Escala por el ancho real (el modelo de la NASA ya coincide) y apoya las ruedas en y = 0
+// Scales to the real width (the NASA model already matches) and rests the wheels at y = 0
 function scaleToRealSize(model) {
   const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
   const scale = REAL_WIDTH / size.x;
@@ -43,7 +43,7 @@ function scaleToRealSize(model) {
   console.log(`Perseverance: ${s.x.toFixed(2)} m ancho × ${s.z.toFixed(2)} m largo (con brazo) × ${s.y.toFixed(2)} m alto`);
 }
 
-// Piezas que son cámaras (las usaremos más adelante)
+// Parts that are cameras (to be used later)
 function findCameras(model) {
   const cameras = [];
   model.traverse((o) => {
@@ -52,7 +52,7 @@ function findCameras(model) {
   return cameras;
 }
 
-// Distancia del centro a cada fila de ruedas, para colocar las huellas
+// Distance from the center to each row of wheels, to place the tracks
 function measureTrackHalfWidth(model) {
   const wheels = model.getObjectByName('Wheels_objs') ?? model;
   const box = new THREE.Box3().setFromObject(wheels);

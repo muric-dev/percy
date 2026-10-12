@@ -1,43 +1,43 @@
-# Plan: Paisaje de Marte con Vite + Three.js
+# Plan: Mars landscape with Vite + Three.js
 
-## Contexto
-Carpeta vacía (solo `CLAUDE.md` y `.git`). Node 24, npm 11, Google Chrome instalado en `/Applications`. Objetivo: escena cinematográfica de Marte (dunas, rocas, cielo caramelo con polvo, sol de tarde cálido, sombras suaves, Fobos y Deimos), visible en el navegador en < 4 min, luego mejorada con un bucle de verificación automática (`npm run check`).
+## Context
+Empty folder (only `CLAUDE.md` and `.git`). Node 24, npm 11, Google Chrome installed in `/Applications`. Goal: a cinematic Mars scene (dunes, rocks, caramel sky with dust, warm afternoon sun, soft shadows, Phobos and Deimos), visible in the browser in under 4 minutes, then improved through an automated check loop (`npm run check`).
 
-## Paso 0 — Guardar el plan
-Copiar este plan tal cual a `/Users/marco/Documents/perseverancia/PLAN.md` (primera acción al salir del modo plan).
+## Step 0 — Save the plan
+Copy this plan to `PLAN.md` in the project root (first action after leaving plan mode).
 
-## Paso 1 — Arranque rápido (meta: < 4 min)
-1. Crear a mano (sin `npm create`, para evitar prompts): `package.json`, `index.html`, `src/main.js`.
-2. `npm i three` y `npm i -D vite playwright-core` (playwright-core no descarga navegadores).
-3. Primera versión mínima en `src/main.js`: renderer con sombras, terreno con ruido (dunas), fondo color caramelo + niebla, luz direccional cálida baja, unas rocas, OrbitControls con auto-rotación lenta.
-4. Lanzar `npm run dev -- --host --port 5173` en segundo plano y dar la URL `http://localhost:5173`. Vite recarga en vivo con cada cambio.
+## Step 1 — Quick start (goal: < 4 min)
+1. Create by hand (no `npm create`, to avoid prompts): `package.json`, `index.html`, `src/main.js`.
+2. `npm i three` and `npm i -D vite playwright-core` (playwright-core does not download browsers).
+3. Minimal first version in `src/main.js`: renderer with shadows, noise-based terrain (dunes), caramel background + fog, low warm directional light, a few rocks, OrbitControls with slow auto-rotation.
+4. Start `npm run dev -- --host --port 5173` in the background and share the URL `http://localhost:5173`. Vite hot-reloads on every change.
 
-## Paso 2 — Script de verificación `npm run check`
-`scripts/check.mjs` con `playwright-core`:
-- `chromium.launch({ channel: 'chrome', headless: true, args: ['--use-angle=metal' / '--enable-unsafe-swiftshader'] })` para que WebGL funcione en headless.
-- Abre `http://localhost:5173` (asume servidor de dev ya corriendo; si no responde, avisa).
-- Escucha `console` (type error/warning) y `pageerror`.
-- Espera ~3 s a que renderice, guarda `screenshots/check.png` (1600×900).
-- Imprime la lista de errores y sale con código 1 si hay errores.
+## Step 2 — Check script `npm run check`
+`scripts/check.mjs` using `playwright-core`:
+- `chromium.launch({ channel: 'chrome', headless: true, args: [...] })` so WebGL works headless.
+- Opens `http://localhost:5173` (assumes the dev server is running; warns if it does not respond).
+- Listens to `console` (error/warning) and `pageerror`.
+- Waits for the scene to render, saves `screenshots/check.png` (1600×900).
+- Prints the error list and exits with code 1 if there are errors.
 
-## Paso 3 — Mejoras (máx. 4 rondas, `npm run check` + mirar captura tras cada una)
-Organizar en módulos pequeños dentro de `src/`:
-- `terrain.js`: plano grande subdividido, ruido fBm + dunas tipo cresta (ondas sinusoidales deformadas por ruido), colores por vértice ocre/óxido según altura y pendiente.
-- `rocks.js`: `IcosahedronGeometry` deformadas con ruido, `InstancedMesh` con escala/rotación aleatorias, posadas sobre la altura del terreno, `castShadow`.
-- `sky.js`: esfera de cielo con shader propio: gradiente caramelo/butterscotch en el horizonte → marrón más oscuro arriba, halo azulado alrededor del sol (rasgo real del atardecer marciano), disco solar pequeño.
-- `moons.js`: Fobos (más grande, irregular) y Deimos (pequeño) como esferas deformadas con material emisivo tenue, colocadas en el cielo y orbitando lentamente.
-- `dust.js`: partículas `Points` flotando con aditivo suave + `FogExp2` color caramelo.
-- Iluminación: `DirectionalLight` cálida baja (sol de tarde) con `PCFSoftShadowMap`, `shadow.radius`, `HemisphereLight` caramelo/óxido; `ACESFilmicToneMapping`, `SRGBColorSpace`.
-- Post-proceso opcional si la captura lo pide: `EffectComposer` + `UnrealBloomPass` suave para el sol.
-- Cámara baja tipo "plano de cine" con auto-rotación lenta.
+## Step 3 — Improvements (max 4 rounds, `npm run check` + review the screenshot after each)
+Organize into small modules under `src/`:
+- `terrain.js`: large subdivided plane, fBm noise + ridge-like dunes (noise-warped sine waves), vertex colors ochre/rust by height and slope.
+- `rocks.js`: noise-deformed `IcosahedronGeometry`, `InstancedMesh` with random scale/rotation, resting on the terrain height, `castShadow`.
+- `sky.js`: sky sphere with a custom shader: caramel/butterscotch gradient at the horizon → darker brown overhead, bluish halo around the sun (a real feature of Martian sunsets), small solar disc.
+- `moons.js`: Phobos (larger, irregular) and Deimos (small) as deformed spheres with a faint emissive material, placed in the sky and slowly rotating.
+- `dust.js`: floating `Points` particles with soft additive blending + caramel `FogExp2`.
+- Lighting: low warm `DirectionalLight` (afternoon sun) with soft shadows, caramel/rust `HemisphereLight`; `ACESFilmicToneMapping`, `SRGBColorSpace`.
+- Optional post-processing if the screenshot calls for it: `EffectComposer` + soft `UnrealBloomPass` for the sun.
+- Low "cinematic shot" camera.
 
-## Archivos
+## Files
 - `package.json` (scripts: `dev`, `build`, `check`)
 - `index.html`, `src/main.js`, `src/terrain.js`, `src/rocks.js`, `src/sky.js`, `src/moons.js`, `src/dust.js`
 - `scripts/check.mjs`
 - `.gitignore` (`node_modules`, `dist`, `screenshots`)
 
-## Verificación / criterio de "listo"
-- `npm run check` sin errores de consola ni `pageerror`.
-- Al revisar `screenshots/check.png` se ven: dunas, rocas con sombras suaves, cielo caramelo con polvo/niebla, sol cálido bajo y las dos lunas.
-- Máximo 4 rondas de corrección; si algo no queda tras la 4ª, lo reporto honestamente.
+## Verification / definition of done
+- `npm run check` with no console errors and no `pageerror`.
+- `screenshots/check.png` shows: dunes, rocks with soft shadows, caramel sky with dust/fog, low warm sun and both moons.
+- At most 4 fix rounds; if something is still missing after the 4th, report it honestly.

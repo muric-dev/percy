@@ -1,4 +1,4 @@
-// npm run check: abre la escena en Chrome invisible, guarda captura y lista errores de consola.
+// npm run check: opens the scene in headless Chrome, saves screenshots and lists console errors.
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 
@@ -7,7 +7,7 @@ const OUT = 'screenshots/check.png';
 mkdirSync('screenshots', { recursive: true });
 
 const browser = await chromium.launch({
-  channel: 'chrome', // usa el Chrome instalado, sin descargar navegadores
+  channel: 'chrome', // uses the installed Chrome, no browser downloads
   headless: true,
   args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'],
 });
@@ -28,14 +28,14 @@ try {
   await browser.close();
   process.exit(1);
 }
-// Esperar a que cargue el rover (window.__ready), si la escena lo tiene
+// Wait for the rover to load (window.__ready), if the scene sets it
 await page.waitForFunction(() => window.__ready, null, { timeout: 30000 }).catch(() => {
   errors.push('[check] la escena no marcó window.__ready en 30 s');
 });
 await page.waitForTimeout(2500);
 await page.screenshot({ path: OUT });
 
-// Prueba de conducción: avanzar, girar y avanzar; luego otra captura con las huellas
+// Driving test: forward, turn and forward; then another screenshot showing the tracks
 const OUT_DRIVE = 'screenshots/check-drive.png';
 await page.keyboard.down('KeyW');
 await page.waitForTimeout(3000);

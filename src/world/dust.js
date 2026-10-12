@@ -12,7 +12,7 @@ const softDot = () =>
     g.fillRect(0, 0, size, size);
   });
 
-// Partículas de polvo flotando a la deriva con el viento.
+// Dust particles drifting in the wind.
 const AREA = 120, HEIGHT = 25;
 
 export function createDust() {

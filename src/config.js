@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
-// Valores compartidos por varios módulos de la escena.
+// Values shared by several scene modules.
 
-// Color del polvo en suspensión: horizonte del cielo y niebla usan el mismo tono
+// Color of the suspended dust: the sky horizon and the fog use the same tone
 export const DUST_COLOR = 0xd29a5e;
 
-// Sol de tarde: bajo y a contraluz para sombras largas
+// Afternoon sun: low and backlit for long shadows
 export const SUN_DIRECTION = new THREE.Vector3(-0.25, 0.12, -1).normalize();
 
-// Donde aparece el rover, mirando hacia el sol
+// Where the rover spawns, facing the sun
 export const ROVER_START = { x: 0, z: 20, heading: Math.PI };

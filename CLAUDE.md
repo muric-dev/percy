@@ -1,3 +1,7 @@
 # Perseverancia
 
-En este proyecto Claude te va a ayudar a crear una simulación en 3D del rover Perseverance de la NASA, que explora el cráter Jezero en Marte. Vamos a recrear el rover, el terreno marciano y sus movimientos, paso a paso y de forma sencilla.
+In this project Claude helps you build a 3D simulation of NASA's Perseverance rover exploring Jezero crater on Mars. We recreate the rover, the Martian terrain and its movements, step by step and keeping things simple.
+
+## Conventions
+
+- All documentation (code comments, Markdown files, commit messages) must be written in English.

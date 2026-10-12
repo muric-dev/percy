@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// Crea una textura dibujando en un canvas cuadrado: draw(ctx, size)
+// Creates a texture by drawing on a square canvas: draw(ctx, size)
 export function canvasTexture(size, draw) {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;

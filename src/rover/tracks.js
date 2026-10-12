@@ -3,12 +3,12 @@ import { groundHeight, groundNormal } from '../world/terrain.js';
 import { canvasTexture } from '../utils/textures.js';
 import { yawOf } from '../utils/math.js';
 
-const MAX = 6000; // huellas guardadas (buffer circular)
-const SPACING = 0.3; // metros entre marcas
+const MAX = 6000; // stored track marks (ring buffer)
+const SPACING = 0.3; // meters between marks
 const TREAD_WIDTH = 0.42;
-const LIFT = 0.02; // separación del suelo para evitar parpadeos
+const LIFT = 0.02; // offset from the ground to avoid z-fighting
 
-// Banda de rodadura: las ruedas de Perseverance tienen "grousers" en chevron
+// Tread pattern: Perseverance's wheels have chevron-shaped "grousers"
 const treadTexture = () =>
   canvasTexture(64, (g) => {
     g.fillStyle = 'rgba(0,0,0,0.55)';
@@ -45,7 +45,7 @@ export function createTracks() {
   return mesh;
 }
 
-// Deja dos huellas (ruedas izquierda y derecha) cada SPACING metros recorridos
+// Leaves two marks (left and right wheels) every SPACING meters traveled
 export function updateTracks(tracks, rover) {
   const d = tracks.userData;
   const { x, z } = rover.position;

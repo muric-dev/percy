@@ -3,8 +3,8 @@ import { groundHeight } from './terrain.js';
 import { rng } from '../utils/noise.js';
 import { ROVER_START } from '../config.js';
 
-// Geometría de roca: icosaedro con vértices desplazados al azar (de forma consistente
-// para que las caras compartidas no se separen).
+// Rock geometry: icosahedron with randomly displaced vertices (displaced consistently
+// so shared faces don't split apart).
 function rockGeometry(rand) {
   const geo = new THREE.IcosahedronGeometry(1, 1);
   const pos = geo.attributes.position;
@@ -34,8 +34,8 @@ export function createRocks() {
       const r = Math.pow(rand(), 0.7) * 140;
       const a = rand() * Math.PI * 2;
       let x = Math.cos(a) * r, z = Math.sin(a) * r;
-      if (Math.hypot(x - ROVER_START.x, z - ROVER_START.z) < 8) x += Math.sign(x || 1) * 10; // despejar donde aparece el rover
-      // La mayoría pequeñas, unas pocas grandes
+      if (Math.hypot(x - ROVER_START.x, z - ROVER_START.z) < 8) x += Math.sign(x || 1) * 10; // keep the rover's spawn area clear
+      // Mostly small, a few large
       const s = 0.15 + Math.pow(rand(), 4) * 2.8;
       dummy.position.set(x, groundHeight(x, z) - s * 0.4, z);
       dummy.rotation.set(rand() * 0.4, rand() * Math.PI * 2, rand() * 0.4);

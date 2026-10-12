@@ -5,13 +5,13 @@ export function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
-// Fracción para acercarse a un objetivo de forma suave e independiente de los FPS
+// Fraction to approach a target smoothly, independent of frame rate
 export const damp = (rate, dt) => Math.min(rate * dt, 1);
 
-// Lleva un ángulo al rango [-π, π]
+// Wraps an angle into the range [-π, π]
 export const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
-// Ángulo horizontal hacia el que mira un objeto (su eje +Z)
+// Horizontal angle an object is facing (its +Z axis)
 const forward = new THREE.Vector3();
 export function yawOf(object) {
   forward.set(0, 0, 1).applyQuaternion(object.quaternion);

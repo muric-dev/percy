@@ -6,7 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { DUST_COLOR } from '../config.js';
 
-// Renderer, escena, cámara, controles de ratón y post-proceso (bloom suave para el sol).
+// Renderer, scene, camera, mouse controls and post-processing (soft bloom for the sun).
 export function createStage() {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);

@@ -4,29 +4,29 @@ import { smoothstep } from '../utils/math.js';
 
 const SIZE = 1000, SEG = 400, STEP = SIZE / SEG;
 
-// Altura del terreno en (x, z): llanura ondulada + campos de dunas + borde del cráter Jezero.
+// Terrain height at (x, z): rolling plain + dune fields + Jezero crater rim.
 function heightAt(x, z) {
   let h = fbm(x * 0.008, z * 0.008) * 7;
 
-  // Dunas con cresta afilada, orientadas por el viento y deformadas por ruido
+  // Sharp-crested dunes, oriented by the wind and warped by noise
   const warp = fbm(x * 0.015 + 10, z * 0.015) * 4;
   const u = x * 0.035 + z * 0.015 + warp;
   const crest = Math.pow(1 - Math.abs(Math.sin(u)), 2.2);
   const duneMask = smoothstep(-0.4, 0.2, noise(x * 0.006 + 3, z * 0.006 - 7));
   h += crest * 5.5 * duneMask;
 
-  // Ondulitas finas (ripples) en la arena
+  // Fine ripples in the sand
   h += Math.sin(x * 0.9 + z * 0.35 + warp * 3) * 0.05;
 
-  // Borde lejano del cráter
+  // Distant crater rim
   const r = Math.hypot(x, z);
   const ang = Math.atan2(z, x);
   const rim = smoothstep(220, 420, r) * (35 + fbm(Math.cos(ang) * 3, Math.sin(ang) * 3) * 40);
   return h + rim;
 }
 
-// Altura de la malla tal como se dibuja (interpolada entre vértices), para apoyar
-// objetos sin que se hundan o floten entre los vértices de la cuadrícula.
+// Height of the mesh as rendered (interpolated between vertices), so objects rest on it
+// without sinking or floating between grid vertices.
 export function groundHeight(x, z) {
   const gx = (x + SIZE / 2) / STEP, gz = (z + SIZE / 2) / STEP;
   const ix = Math.floor(gx), iz = Math.floor(gz);
@@ -37,8 +37,8 @@ export function groundHeight(x, z) {
   return (h00 * (1 - fx) + h10 * fx) * (1 - fz) + (h01 * (1 - fx) + h11 * fx) * fz;
 }
 
-// Normal del suelo en (x, z). `spread` es la distancia de muestreo: grande para promediar
-// la pendiente bajo todo el rover, pequeña para una huella.
+// Ground normal at (x, z). `spread` is the sampling distance: large to average
+// the slope under the whole rover, small for a single track mark.
 const along = new THREE.Vector3(), across = new THREE.Vector3();
 export function groundNormal(x, z, spread, target = new THREE.Vector3()) {
   along.set(2 * spread, groundHeight(x + spread, z) - groundHeight(x - spread, z), 0);
@@ -63,7 +63,7 @@ export function createTerrain() {
   return mesh;
 }
 
-// Colores por vértice: óxido en general, arena clara en crestas, tonos oscuros en pendientes
+// Vertex colors: rust overall, light sand on crests, darker tones on slopes
 function paintGround(geo) {
   const pos = geo.attributes.position;
   const nrm = geo.attributes.normal;

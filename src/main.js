@@ -15,18 +15,18 @@ import { createFollowCamera } from './rover/followCamera.js';
 
 const { renderer, scene, camera, controls, render } = createStage();
 
-// Escenario
+// Scenery
 const { sun, sky } = createLights();
 const moons = createMoons();
 const dust = createDust();
 const tracks = createTracks();
 scene.add(sun, sun.target, sky, createSky(), createTerrain(), createRocks(), moons, dust, tracks);
 
-// Vista mientras carga el rover
+// View while the rover loads
 camera.position.set(ROVER_START.x + 5, 6, ROVER_START.z + 10);
 controls.target.set(ROVER_START.x, 2, ROVER_START.z);
 
-// Rover (se carga en segundo plano)
+// Rover (loaded in the background)
 let rover = null, driver = null, follow = null;
 loadRover().then((model) => {
   rover = model;
@@ -34,7 +34,7 @@ loadRover().then((model) => {
   scene.add(rover);
   camera.position.set(ROVER_START.x - 7, rover.position.y + 2.2, ROVER_START.z + 5);
   follow = createFollowCamera(camera, controls, rover);
-  window.__ready = true; // señal para npm run check
+  window.__ready = true; // signal for npm run check
 });
 
 const timer = new THREE.Timer();

@@ -1,4 +1,4 @@
-// Ruido de valor 2D sencillo (sin dependencias) + fBm.
+// Simple 2D value noise (no dependencies) + fBm.
 function hash(x, y) {
   const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return s - Math.floor(s);
@@ -25,7 +25,7 @@ export function fbm(x, y, octaves = 5) {
   return sum;
 }
 
-// Generador pseudoaleatorio con semilla, para que la escena sea siempre igual.
+// Seeded pseudo-random generator, so the scene is always the same.
 export function rng(seed = 1) {
   return () => {
     seed = (seed * 16807) % 2147483647;

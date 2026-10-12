@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { DUST_COLOR, SUN_DIRECTION } from '../config.js';
 
-// Cielo marciano de tarde: caramelo en el horizonte, marrón polvoriento arriba
-// y el característico halo azulado alrededor del sol.
+// Martian afternoon sky: caramel at the horizon, dusty brown overhead
+// and the characteristic bluish halo around the sun.
 export function createSky() {
   const mat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
@@ -30,14 +30,14 @@ export function createSky() {
         float h = max(d.y, 0.0);
         vec3 col = mix(horizon, zenith, pow(h, 0.55));
         float s = max(dot(d, sunDir), 0.0);
-        // Resplandor cálido amplio por el polvo
+        // Wide warm glow from the dust
         col += vec3(1.0, 0.62, 0.32) * pow(s, 8.0) * 0.25;
-        // Halo azul del atardecer marciano
+        // Blue halo of the Martian sunset
         col = mix(col, halo, pow(s, 60.0) * 0.45);
-        // Disco solar (más pequeño que en la Tierra)
+        // Solar disc (smaller than seen from Earth)
         col += sunColor * smoothstep(0.9993, 0.9997, s) * 2.5;
         col += sunColor * pow(s, 900.0) * 0.8;
-        // Bajo el horizonte, mismo tono que la niebla
+        // Below the horizon, same tone as the fog
         col = mix(col, horizon, smoothstep(0.0, -0.05, d.y));
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>

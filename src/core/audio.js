@@ -1,5 +1,5 @@
-// Sonido ambiente generado con Web Audio: viento marciano + motores del rover.
-// Los navegadores solo permiten audio tras un gesto del usuario, así que se crea al primer clic/tecla.
+// Ambient sound generated with Web Audio: Martian wind + rover motors.
+// Browsers only allow audio after a user gesture, so it is created on the first click/key press.
 let ctx = null;
 let motorGain, motorOsc, motorFilter;
 
@@ -22,7 +22,7 @@ function startAudio() {
   master.gain.value = 0.9;
   master.connect(ctx.destination);
 
-  // Viento: en Marte la atmósfera es muy fina y el sonido llega apagado y grave
+  // Wind: the Martian atmosphere is very thin, so sound arrives muffled and low-pitched
   const wind = ctx.createBufferSource();
   wind.buffer = brownNoise(ctx);
   wind.loop = true;
@@ -35,7 +35,7 @@ function startAudio() {
   wind.connect(lowpass).connect(windGain).connect(master);
   wind.start();
 
-  // Ráfagas: osciladores lentos que modulan volumen y tono del viento
+  // Gusts: slow oscillators that modulate the wind's volume and pitch
   const gust = ctx.createOscillator();
   gust.frequency.value = 0.11;
   const gustDepth = ctx.createGain();
@@ -49,7 +49,7 @@ function startAudio() {
   whistle.connect(whistleDepth).connect(lowpass.frequency);
   whistle.start();
 
-  // Motores de las ruedas: zumbido eléctrico que sube con la velocidad
+  // Wheel motors: electric hum that rises with speed
   motorOsc = ctx.createOscillator();
   motorOsc.type = 'sawtooth';
   motorOsc.frequency.value = 60;
@@ -65,7 +65,7 @@ function startAudio() {
 addEventListener('pointerdown', startAudio);
 addEventListener('keydown', startAudio);
 
-// effort: esfuerzo de los motores de 0 (parado) a 1 (a tope)
+// effort: motor effort from 0 (stopped) to 1 (full power)
 export function updateAudio(effort) {
   if (!ctx) return;
   const t = ctx.currentTime;

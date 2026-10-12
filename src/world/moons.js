@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { rng } from '../utils/noise.js';
 
-// Lunas irregulares tipo "patata": esfera deformada.
+// Irregular "potato-shaped" moons: a deformed sphere.
 function moonGeometry(radius, seed, stretch) {
   const rand = rng(seed);
   const geo = new THREE.SphereGeometry(radius, 48, 32);
@@ -17,7 +17,7 @@ function moonGeometry(radius, seed, stretch) {
     let k = 1;
     for (const b of bumps) {
       const d = v.distanceTo(b.dir);
-      if (d < b.size) k -= b.depth * (1 - d / b.size); // cráteres
+      if (d < b.size) k -= b.depth * (1 - d / b.size); // craters
     }
     v.multiplyScalar(radius * k);
     v.x *= stretch;
@@ -36,12 +36,12 @@ export function createMoons() {
     fog: false,
   });
 
-  // Fobos: más grande y alargado, a la derecha del sol
+  // Phobos: larger and elongated, to the right of the sun
   const phobos = new THREE.Mesh(moonGeometry(16, 7, 1.35), mat);
   phobos.position.set(0.38, 0.3, -1).normalize().multiplyScalar(900);
   phobos.rotation.set(0.4, 0.8, 0.2);
 
-  // Deimos: pequeño y lejano, a la izquierda
+  // Deimos: small and distant, to the left
   const deimos = new THREE.Mesh(moonGeometry(6, 13, 1.15), mat);
   deimos.position.set(-0.55, 0.36, -1).normalize().multiplyScalar(900);
 

@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { SUN_DIRECTION } from '../config.js';
 
 const SUN_DISTANCE = 200;
-const SHADOW_HALF_SIZE = 70; // metros cubiertos por las sombras alrededor del punto enfocado
+const SHADOW_HALF_SIZE = 70; // meters covered by shadows around the focus point
 
-// Sol de tarde cálido con sombras suaves + luz de cielo/suelo rebotada
+// Warm afternoon sun with soft shadows + bounced sky/ground light
 export function createLights() {
   const sun = new THREE.DirectionalLight(0xffb878, 3.2);
   sun.castShadow = true;
@@ -21,7 +21,7 @@ export function createLights() {
   return { sun, sky };
 }
 
-// Mueve el sol (y su zona de sombras) para que acompañe a un punto, p. ej. el rover
+// Moves the sun (and its shadow area) to follow a point, e.g. the rover
 export function aimSunAt(sun, position) {
   sun.position.copy(position).addScaledVector(SUN_DIRECTION, SUN_DISTANCE);
   sun.target.position.copy(position);
