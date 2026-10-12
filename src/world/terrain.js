@@ -28,9 +28,13 @@ function tarAmount(x, z) {
   return profile * segment * field * size;
 }
 
-// Terrain height at (x, z): gently undulating crater floor + TARs + small craters.
+// Small-scale relief: hummocky ground (bumps ~25 m across, ~1 m high) with finer swells on top,
+// like the eroded lava flows of the Máaz formation that Perseverance crossed.
+const hummocks = (x, z) => fbm(x * 0.04, z * 0.04, 3) * 1.1 + fbm(x * 0.11 + 5, z * 0.11, 2) * 0.35;
+
+// Terrain height at (x, z): gently undulating crater floor + hummocks + TARs + small craters.
 function heightAt(x, z) {
-  return fbm(x * 0.004, z * 0.004) * 3 + tarAmount(x, z) * TAR_HEIGHT + craterHeight(x, z);
+  return fbm(x * 0.004, z * 0.004) * 3 + hummocks(x, z) + tarAmount(x, z) * TAR_HEIGHT + craterHeight(x, z);
 }
 
 // Height of the mesh as rendered (interpolated between vertices), so objects rest on it
